@@ -54,7 +54,7 @@ def upload_file():
         elif URL: 
             downloaded_img = load_img(URL)
             downloaded_img_name = ''.join(random.choices(
-                string.ascii_uppercase + string.ascii_lowercase + string.digits, k = 10)) + '.jpeg'
+                string.ascii_uppercase + string.ascii_lowercase + string.digits, k = 10)) + '.jpg'
             downloaded_img_location = save_img(downloaded_img, downloaded_img_name)
 
             pred, mask = prediction(imgpath=downloaded_img_location, img=None)
@@ -93,7 +93,7 @@ def video_feed():
 
 def load_img(image_location):
     img = io.imread(image_location)
-    img = cv2.resize(img[:,:,0:3], (600,600), interpolation=cv2.INTER_AREA)
+    img = cv2.resize(img[:,:,0:3], (256,256), interpolation=cv2.INTER_AREA)
     return img
 
 def save_img(img,image_name):
@@ -109,9 +109,9 @@ def prediction(imgpath=None, img=None):
     else:
         im = img.copy()
     
-    im = cv2.resize(im,(600,600))
+    im = cv2.resize(im,(256,256))
     
-    img = np.array(im)/699
+    img = np.array(im)/255
     img = img.reshape((1,)+img.shape)
     pred = model.predict(img)
 
@@ -122,11 +122,11 @@ def prediction(imgpath=None, img=None):
     p[np.where(p<0.85)] = 0
 
     im[:,:,0] = im[:,:,0]*p 
-    im[:,:,0][np.where(p!=1)] = 699
+    im[:,:,0][np.where(p!=1)] = 255
     im[:,:,1] = im[:,:,1]*p 
-    im[:,:,1][np.where(p!=1)] = 699
+    im[:,:,1][np.where(p!=1)] = 255
     im[:,:,2] = im[:,:,2]*p
-    im[:,:,2][np.where(p!=1)] = 699
+    im[:,:,2][np.where(p!=1)] = 255
 
     return im,p
 
@@ -136,7 +136,7 @@ def gen():
     """Video streaming generator function."""
     while True:
         read_return_code, frame = vc.read()
-        frame = cv2.resize(frame, (500, 500), interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (360, 360), interpolation=cv2.INTER_AREA)
 
         cv2.imshow('Original',frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -144,7 +144,7 @@ def gen():
 
         frame,p = prediction(imgpath=None, img=frame)
 
-        frame = cv2.resize(frame, (500, 500), interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (360, 360), interpolation=cv2.INTER_AREA)
         encode_return_code, image_buffer = cv2.imencode('.jpg', frame)
         io_buf = IO.BytesIO(image_buffer)
         yield (b'--frame\r\n'
